@@ -1,0 +1,585 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molecular Visualization Platform</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+</head>
+<body class="site-locked">
+    <div class="ambient-grid" aria-hidden="true"></div>
+    <div class="molecular-field" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div id="entry-warning" class="entry-warning" role="dialog" aria-modal="true" aria-labelledby="warning-title">
+        <section class="warning-panel">
+            <h2 id="warning-title">Molecular structure generation failed.</h2>
+            <p>The requested compound may contain:</p>
+            <ul>
+                <li>Ambiguous nomenclature</li>
+                <li>Incomplete stereochemical information</li>
+                <li>Unsupported inorganic or coordination bonding</li>
+                <li>Missing 3D conformational data</li>
+            </ul>
+            <p>Suggested actions:</p>
+            <ol>
+                <li>Try a common English compound name</li>
+                <li>Use a standardized IUPAC name</li>
+                <li>Input a valid SMILES notation</li>
+            </ol>
+            <button id="confirm-warning" type="button" onclick="confirmEntry()">Confirm</button>
+        </section>
+    </div>
+
+    <header class="site-header">
+        <a class="brand" href="/" aria-label="Molecular Visualization Platform">
+            <span class="logo-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32" focusable="false">
+                    <path class="beaker-outline" d="M11 4h10M13 4v7.2L7.8 22.4C6.8 24.6 8.4 27 10.8 27h10.4c2.4 0 4-2.4 3-4.6L19 11.2V4" />
+                    <path class="beaker-liquid" d="M10.6 21.2h10.8l1.2 2.5c.3.7-.2 1.5-1 1.5H10.4c-.8 0-1.3-.8-1-1.5l1.2-2.5Z" />
+                    <circle class="beaker-bubble" cx="13" cy="18" r="1.15" />
+                    <circle class="beaker-bubble" cx="18.7" cy="16.5" r="0.9" />
+                </svg>
+            </span>
+            <span data-i18n="brand">Molecular Visualization Platform</span>
+        </a>
+        <div class="system-status" aria-label="System status">
+            <span data-i18n="rdkitStatus">RDKit Online</span>
+            <span data-i18n="pubchemStatus">PubChem Ready</span>
+            <span data-i18n="viewerStatus">3Dmol Active</span>
+        </div>
+        <div class="language-switch" aria-label="Language">
+            <button class="language-toggle" type="button" data-language-set="zh" onclick="setLanguage('zh')">繁中</button>
+            <button class="language-toggle" type="button" data-language-set="en" onclick="setLanguage('en')">EN</button>
+        </div>
+        <div id="warning-language-switch" class="language-switch warning-language-switch" aria-label="Language">
+            <button class="language-toggle" type="button" data-language-set="zh" onclick="setLanguage('zh')">繁中</button>
+            <button class="language-toggle" type="button" data-language-set="en" onclick="setLanguage('en')">EN</button>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="hero workbench-hero" aria-labelledby="hero-title">
+            <div class="hero-primary">
+                <p class="eyebrow" data-i18n="heroKicker">Research Chemistry Platform</p>
+                <h1 id="hero-title" data-i18n="heroTitle">Molecular Intelligence Workbench</h1>
+                <p class="hero-copy" data-i18n="heroCopy">
+                    Resolve compound identity, generate RDKit conformers, inspect 3D structure, and summarize teaching-ready chemical features in one analysis console.
+                </p>
+
+                <form id="search-form" class="search-form" aria-label="Molecule search">
+                    <label for="molecule-input" data-i18n="searchLabel">Search molecule name or SMILES</label>
+                    <div class="search-row">
+                        <input
+                            id="molecule-input"
+                            name="name"
+                            type="search"
+                            placeholder="Enter compound name or valid SMILES"
+                            autocomplete="off"
+                        >
+                        <button type="submit" data-i18n="analyzeButton">Analyze</button>
+                    </div>
+                    <p class="search-hint" data-i18n="englishOnlyHint">Search supports English compound names or valid SMILES only.</p>
+                </form>
+            </div>
+
+            <aside class="analysis-panel" aria-label="Chemistry analysis capabilities">
+                <p class="section-kicker" data-i18n="pipelineTitle">Analysis Pipeline</p>
+                <ol>
+                    <li><span>01</span> <b data-i18n="pipelineOne">PubChem identity lookup</b></li>
+                    <li><span>02</span> <b data-i18n="pipelineTwo">NCI / OPSIN fallback resolution</b></li>
+                    <li><span>03</span> <b data-i18n="pipelineThree">RDKit descriptors and 3D conformer</b></li>
+                    <li><span>04</span> <b data-i18n="pipelineFour">Functional signatures and notes</b></li>
+                </ol>
+            </aside>
+        </section>
+
+        <section class="viewer-card" aria-label="Molecular viewer">
+            <div class="viewer-header">
+                <div>
+                    <p class="section-kicker" data-i18n="viewerSection">Molecular Viewer Section</p>
+                    <h2 id="molecule-name">No molecule selected</h2>
+                    <p id="iupac-name">Enter a compound name or SMILES, then generate a model.</p>
+                </div>
+                <div class="model-toggle" aria-label="3D model style">
+                    <button id="ball-button" class="toggle-button active" type="button">Ball-Stick</button>
+                    <button id="vdw-button" class="toggle-button" type="button" data-i18n="vdwButton">VDW / Space Filling</button>
+                </div>
+            </div>
+
+            <div id="status" class="status" hidden></div>
+            <div class="viewer-frame">
+                <div id="viewer"></div>
+            </div>
+        </section>
+
+        <section class="dashboard-grid" aria-label="Molecular information dashboard">
+            <article class="dashboard-card properties-card">
+                <div class="card-title-row">
+                    <p class="section-kicker" data-i18n="infoPanel">Molecular Information Panel</p>
+                    <h2 data-i18n="propertiesTitle">Molecular Properties</h2>
+                </div>
+                <dl id="properties" class="properties-grid"></dl>
+            </article>
+
+            <article class="dashboard-card">
+                <div class="card-title-row">
+                    <p class="section-kicker" data-i18n="functionalPanel">Functional Group Analysis</p>
+                    <h2 data-i18n="motifsTitle">Detected Motifs</h2>
+                </div>
+                <div id="functional-groups" class="chips"></div>
+            </article>
+
+            <article class="dashboard-card notes-card">
+                <div class="card-title-row">
+                    <p class="section-kicker" data-i18n="notesPanel">Teaching Notes</p>
+                    <h2 data-i18n="notesTitle">Chemistry Teaching Notes</h2>
+                </div>
+                <ul id="teaching-notes" class="analysis-list"></ul>
+            </article>
+        </section>
+
+        <section class="references-section" aria-labelledby="references-title">
+            <div class="card-title-row">
+                <p class="section-kicker">Scientific References</p>
+                <h2 id="references-title">Data Sources & Scientific References</h2>
+            </div>
+            <p>
+                This platform integrates open scientific databases and open-source cheminformatics software for educational molecular visualization and analysis.
+            </p>
+            <p>Primary resources include:</p>
+            <ul class="reference-list">
+                <li><strong>PubChem (NCBI/NIH)</strong><span>Molecular structures, identifiers, and chemical properties</span><a href="https://pubchem.ncbi.nlm.nih.gov" target="_blank" rel="noreferrer">https://pubchem.ncbi.nlm.nih.gov</a></li>
+                <li><strong>RDKit</strong><span>Open-source cheminformatics toolkit</span><a href="https://www.rdkit.org" target="_blank" rel="noreferrer">https://www.rdkit.org</a></li>
+                <li><strong>3Dmol.js</strong><span>Web-based molecular visualization engine</span><a href="https://3dmol.csb.pitt.edu" target="_blank" rel="noreferrer">https://3dmol.csb.pitt.edu</a></li>
+                <li><strong>OPSIN</strong><span>Open parser for IUPAC chemical nomenclature</span><a href="https://opsin.ch.cam.ac.uk" target="_blank" rel="noreferrer">https://opsin.ch.cam.ac.uk</a></li>
+                <li><strong>NCI/Cactus Chemical Identifier Resolver</strong><span>Chemical name-to-structure resolution</span><a href="https://cactus.nci.nih.gov/chemical/structure" target="_blank" rel="noreferrer">https://cactus.nci.nih.gov/chemical/structure</a></li>
+                <li><strong>SMARTS Substructure Matching</strong><span>Functional-group recognition and substructure analysis</span><a href="https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html" target="_blank" rel="noreferrer">https://www.daylight.com/dayhtml/doc/theory/theory.smarts.html</a></li>
+                <li><strong>ETKDG Conformer Generation</strong><span>RDKit distance geometry and conformer optimization algorithms</span><a href="https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html" target="_blank" rel="noreferrer">https://www.rdkit.org/docs/source/rdkit.Chem.rdDistGeom.html</a></li>
+                <li><strong>Bondi van der Waals Radii</strong><span>Atomic van der Waals radii used in space-filling molecular rendering</span><a href="https://en.wikipedia.org/wiki/Van_der_Waals_radius" target="_blank" rel="noreferrer">https://en.wikipedia.org/wiki/Van_der_Waals_radius</a></li>
+            </ul>
+            <div class="reference-disclaimer">
+                <p>This platform is intended for educational and visualization purposes only.</p>
+                <p>Generated molecular geometries, chemical annotations, functional-group recognition, and computational analyses may contain inaccuracies depending on external database availability, stereochemical completeness, unsupported inorganic or coordination structures, and conformational generation limitations.</p>
+                <p>Users should verify critical chemical information using authoritative scientific references.</p>
+                <p>Powered by RDKit, PubChem, 3Dmol.js, OPSIN, and open chemical databases.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <span>RDKit / PubChem / 3Dmol.js</span>
+        <span data-i18n="footerText">Computational chemistry visualization interface</span>
+    </footer>
+
+    <script>
+        const form = document.querySelector("#search-form");
+        const input = document.querySelector("#molecule-input");
+        const statusBox = document.querySelector("#status");
+        const viewerElement = document.querySelector("#viewer");
+        const ballButton = document.querySelector("#ball-button");
+        const vdwButton = document.querySelector("#vdw-button");
+        const properties = document.querySelector("#properties");
+        const functionalGroups = document.querySelector("#functional-groups");
+        const teachingNotes = document.querySelector("#teaching-notes");
+        const warning = document.querySelector("#entry-warning");
+        const confirmWarning = document.querySelector("#confirm-warning");
+        const languageButtons = document.querySelectorAll("[data-language-set]");
+
+        let viewer;
+        let currentMolBlock = "";
+        let currentStyle = "ball";
+        let siteConfirmed = false;
+        let currentLang = "en";
+        let currentMoleculeData = null;
+
+        const translations = {
+            en: {
+                pageTitle: "Molecular Visualization Platform",
+                brand: "Molecular Visualization Platform",
+                rdkitStatus: "RDKit Online",
+                pubchemStatus: "PubChem Ready",
+                viewerStatus: "3Dmol Active",
+                heroKicker: "Research Chemistry Platform",
+                heroTitle: "Molecular Intelligence Workbench",
+                heroCopy: "Resolve compound identity, generate RDKit conformers, inspect 3D structure, and summarize teaching-ready chemical features in one analysis console.",
+                searchLabel: "Search molecule name or SMILES",
+                searchPlaceholder: "Enter compound name or valid SMILES",
+                englishOnlyHint: "Search supports English compound names or valid SMILES only.",
+                analyzeButton: "Analyze",
+                pipelineTitle: "Analysis Pipeline",
+                pipelineOne: "PubChem identity lookup",
+                pipelineTwo: "NCI / OPSIN fallback resolution",
+                pipelineThree: "RDKit descriptors and 3D conformer",
+                pipelineFour: "Functional signatures and notes",
+                viewerSection: "Molecular Viewer Section",
+                noMolecule: "No molecule selected",
+                emptyHint: "Enter a compound name or SMILES, then generate a model.",
+                noModel: "No molecular model loaded",
+                ballButton: "Ball-Stick",
+                vdwButton: "VDW / Space Filling",
+                infoPanel: "Molecular Information Panel",
+                propertiesTitle: "Molecular Properties",
+                functionalPanel: "Functional Group Analysis",
+                motifsTitle: "Detected Motifs",
+                notesPanel: "Teaching Notes",
+                notesTitle: "Chemistry Teaching Notes",
+                footerText: "Computational chemistry visualization interface",
+                warningTitle: "Molecular structure generation failed.",
+                warningIntro: "The requested compound may contain:",
+                warningA: "Ambiguous nomenclature",
+                warningB: "Incomplete stereochemical information",
+                warningC: "Unsupported inorganic or coordination bonding",
+                warningD: "Missing 3D conformational data",
+                warningActions: "Suggested actions:",
+                actionOne: "Try a common English compound name",
+                actionTwo: "Use a standardized IUPAC name",
+                actionThree: "Input a valid SMILES notation",
+                confirm: "Confirm",
+                emptyError: "Enter a molecule name or SMILES first.",
+                loading: "Running molecular lookup and conformer generation...",
+                resolving: "Resolving molecular identity...",
+                iupacPrefix: "IUPAC:",
+                failedTitle: "Generation failed",
+                failedHint: "Try a common English compound name, standardized IUPAC name, or valid SMILES.",
+                noFunctionalGroups: "No common functional group detected",
+            },
+            zh: {
+                pageTitle: "分子視覺化平台",
+                brand: "分子視覺化平台",
+                rdkitStatus: "RDKit 已連線",
+                pubchemStatus: "PubChem 就緒",
+                viewerStatus: "3Dmol 啟用",
+                heroKicker: "科研化學平台",
+                heroTitle: "分子分析工作台",
+                heroCopy: "解析化合物身分、生成 RDKit 立體構形、檢視 3D 結構，並整理適合教學使用的化學特徵。",
+                searchLabel: "搜尋分子名稱或 SMILES",
+                searchPlaceholder: "輸入化合物名稱或有效 SMILES",
+                englishOnlyHint: "只能使用英文化合物名稱或有效 SMILES 搜尋。",
+                analyzeButton: "分析",
+                pipelineTitle: "分析流程",
+                pipelineOne: "PubChem 身分查詢",
+                pipelineTwo: "NCI / OPSIN 備援解析",
+                pipelineThree: "RDKit 描述符與 3D 構形",
+                pipelineFour: "官能基特徵與教學筆記",
+                viewerSection: "分子模型區",
+                noMolecule: "尚未選擇分子",
+                emptyHint: "輸入化合物名稱或 SMILES，然後按下分析。",
+                noModel: "尚未載入分子模型",
+                ballButton: "球棒模型",
+                vdwButton: "凡德瓦 / 空間填充",
+                infoPanel: "分子資訊面板",
+                propertiesTitle: "分子性質",
+                functionalPanel: "官能基分析",
+                motifsTitle: "偵測到的結構特徵",
+                notesPanel: "教學筆記",
+                notesTitle: "化學教學筆記",
+                footerText: "計算化學視覺化介面",
+                warningTitle: "分子結構生成失敗。",
+                warningIntro: "要求的化合物可能包含：",
+                warningA: "命名不明確",
+                warningB: "立體化學資訊不完整",
+                warningC: "不支援的無機或配位鍵結",
+                warningD: "缺少 3D 構形資料",
+                warningActions: "建議處理方式：",
+                actionOne: "嘗試常見英文化合物名稱",
+                actionTwo: "使用標準 IUPAC 名稱",
+                actionThree: "輸入有效的 SMILES 表示法",
+                confirm: "確認",
+                emptyError: "請先輸入分子名稱或 SMILES。",
+                loading: "正在查詢分子並生成立體構形...",
+                resolving: "正在解析分子身分...",
+                iupacPrefix: "IUPAC：",
+                failedTitle: "生成失敗",
+                failedHint: "請嘗試常見英文名稱、標準 IUPAC 名稱，或有效 SMILES。",
+                noFunctionalGroups: "未偵測到常見官能基",
+            },
+        };
+
+        const propertyLabels = {
+            en: {
+                formula: "Formula",
+                molecular_weight: "Molecular Weight",
+                exact_mass: "Exact Mass",
+                mol_logp: "MolLogP",
+                tpsa: "TPSA",
+                h_bond_donor: "H-bond Donor",
+                h_bond_acceptor: "H-bond Acceptor",
+                rotatable_bonds: "Rotatable Bonds",
+                rings: "Rings",
+                aromatic_rings: "Aromatic Rings",
+                fraction_csp3: "Fraction Csp3",
+                pubchem_cid: "PubChem CID",
+                iupac_name: "IUPAC Name",
+                source: "Source",
+            },
+            zh: {
+                formula: "分子式",
+                molecular_weight: "分子量",
+                exact_mass: "精確質量",
+                mol_logp: "MolLogP",
+                tpsa: "TPSA",
+                h_bond_donor: "氫鍵供體",
+                h_bond_acceptor: "氫鍵受體",
+                rotatable_bonds: "可旋轉鍵",
+                rings: "環數",
+                aromatic_rings: "芳香環數",
+                fraction_csp3: "Csp3 比例",
+                pubchem_cid: "PubChem CID",
+                iupac_name: "IUPAC 名稱",
+                source: "資料來源",
+            },
+        };
+
+        const functionalGroupLabels = {
+            zh: {
+                "Alcohol": "醇",
+                "Phenol": "酚",
+                "Ether": "醚",
+                "Aldehyde": "醛",
+                "Ketone": "酮",
+                "Carboxylic acid": "羧酸",
+                "Ester": "酯",
+                "Amide": "醯胺",
+                "Amine": "胺",
+                "Alkene": "烯",
+                "Alkyne": "炔",
+                "Aromatic ring": "芳香環",
+                "Alkyl halide": "烷基鹵化物",
+                "Aryl halide": "芳基鹵化物",
+                "Nitrile": "腈",
+                "Nitro": "硝基",
+            },
+        };
+
+        function t(key) {
+            return translations[currentLang][key] || translations.en[key] || key;
+        }
+
+        function applyLanguage() {
+            document.documentElement.lang = currentLang === "zh" ? "zh-Hant" : "en";
+            document.title = t("pageTitle");
+            document.querySelectorAll("[data-i18n]").forEach((node) => {
+                node.textContent = t(node.dataset.i18n);
+            });
+            input.placeholder = t("searchPlaceholder");
+            viewerElement.dataset.emptyLabel = t("noModel");
+            ballButton.textContent = t("ballButton");
+            confirmWarning.textContent = t("confirm");
+            languageButtons.forEach((button) => {
+                button.classList.toggle("active", button.dataset.languageSet === currentLang);
+            });
+            warning.querySelector("#warning-title").textContent = t("warningTitle");
+            warning.querySelectorAll("p")[0].textContent = t("warningIntro");
+            warning.querySelectorAll("p")[1].textContent = t("warningActions");
+            warning.querySelectorAll("ul li")[0].textContent = t("warningA");
+            warning.querySelectorAll("ul li")[1].textContent = t("warningB");
+            warning.querySelectorAll("ul li")[2].textContent = t("warningC");
+            warning.querySelectorAll("ul li")[3].textContent = t("warningD");
+            warning.querySelectorAll("ol li")[0].textContent = t("actionOne");
+            warning.querySelectorAll("ol li")[1].textContent = t("actionTwo");
+            warning.querySelectorAll("ol li")[2].textContent = t("actionThree");
+
+            if (currentMoleculeData) {
+                document.querySelector("#iupac-name").textContent = `${t("iupacPrefix")} ${currentMoleculeData.iupac_name}`;
+                renderProperties(currentMoleculeData);
+                renderTextSections(currentMoleculeData);
+            } else {
+                document.querySelector("#molecule-name").textContent = t("noMolecule");
+                document.querySelector("#iupac-name").textContent = t("emptyHint");
+            }
+        }
+
+        function resetWorkspace() {
+            input.value = "";
+            currentMolBlock = "";
+            currentMoleculeData = null;
+            document.querySelector("#molecule-name").textContent = t("noMolecule");
+            document.querySelector("#iupac-name").textContent = t("emptyHint");
+            properties.innerHTML = "";
+            functionalGroups.innerHTML = "";
+            teachingNotes.innerHTML = "";
+            setStatus("");
+
+            if (viewer) {
+                viewer.clear();
+                viewer.render();
+            }
+        }
+
+        function setStatus(message, kind = "info") {
+            statusBox.textContent = message;
+            statusBox.dataset.kind = kind;
+            statusBox.hidden = !message;
+        }
+
+        function ensureViewer() {
+            if (!viewer && window.$3Dmol) {
+                viewer = $3Dmol.createViewer(viewerElement, { backgroundColor: "#fffdf8" });
+            }
+            return viewer;
+        }
+
+        function renderModel(style = currentStyle) {
+            currentStyle = style;
+            ballButton.classList.toggle("active", style === "ball");
+            vdwButton.classList.toggle("active", style === "vdw");
+
+            if (!currentMolBlock) {
+                return;
+            }
+
+            const activeViewer = ensureViewer();
+            if (!activeViewer) {
+                return;
+            }
+
+            activeViewer.resize();
+            activeViewer.clear();
+            activeViewer.addModel(currentMolBlock, "mol");
+
+            if (style === "ball") {
+                activeViewer.setStyle({}, {
+                    stick: { radius: 0.16, colorscheme: "Jmol" },
+                    sphere: { scale: 0.28, colorscheme: "Jmol" }
+                });
+            } else {
+                activeViewer.setStyle({}, {
+                    sphere: { scale: 1.0, colorscheme: "Jmol" }
+                });
+            }
+
+            activeViewer.zoomTo();
+            activeViewer.resize();
+            activeViewer.render();
+        }
+
+        function renderProperties(data) {
+            const rows = [
+                ["formula", data.properties.formula],
+                ["molecular_weight", `${data.properties.molecular_weight} g/mol`],
+                ["exact_mass", data.properties.exact_mass],
+                ["mol_logp", data.properties.mol_logp],
+                ["tpsa", data.properties.tpsa],
+                ["h_bond_donor", data.properties.h_bond_donor],
+                ["h_bond_acceptor", data.properties.h_bond_acceptor],
+                ["rotatable_bonds", data.properties.rotatable_bonds],
+                ["rings", data.properties.rings],
+                ["aromatic_rings", data.properties.aromatic_rings],
+                ["fraction_csp3", data.properties.fraction_csp3],
+                ["pubchem_cid", data.properties.pubchem_cid],
+                ["iupac_name", data.iupac_name],
+                ["source", data.source]
+            ];
+
+            properties.innerHTML = rows.map(([labelKey, value]) => `
+                <div class="property-row">
+                    <dt>${propertyLabels[currentLang][labelKey]}</dt>
+                    <dd>${value}</dd>
+                </div>
+            `).join("");
+        }
+
+        function renderTextSections(data) {
+            if (data.functional_groups.length) {
+                functionalGroups.innerHTML = data.functional_groups
+                    .map(group => `<span class="chip">${functionalGroupLabels[currentLang]?.[group] || group}</span>`)
+                    .join("");
+            } else {
+                functionalGroups.innerHTML = `<span class="muted">${t("noFunctionalGroups")}</span>`;
+            }
+
+            teachingNotes.innerHTML = data.teaching_notes
+                .map(note => `<li>${note}</li>`)
+                .join("");
+        }
+
+        async function loadMolecule(name) {
+            if (!siteConfirmed) {
+                return;
+            }
+
+            if (!name) {
+                setStatus(t("emptyError"), "error");
+                return;
+            }
+
+            setStatus(t("loading"));
+            document.querySelector("#molecule-name").textContent = name;
+            document.querySelector("#iupac-name").textContent = t("resolving");
+
+            try {
+                const response = await fetch(`/api/molecule?name=${encodeURIComponent(name)}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Could not load molecule.");
+                }
+
+                document.querySelector("#molecule-name").textContent = data.display_name.toUpperCase();
+                document.querySelector("#iupac-name").textContent = `${t("iupacPrefix")} ${data.iupac_name}`;
+                currentMolBlock = data.mol_block;
+                currentMoleculeData = data;
+                renderProperties(data);
+                renderTextSections(data);
+                renderModel(currentStyle);
+                setStatus("");
+            } catch (error) {
+                currentMolBlock = "";
+                if (viewer) {
+                    viewer.clear();
+                    viewer.render();
+                }
+                currentMoleculeData = null;
+                properties.innerHTML = "";
+                functionalGroups.innerHTML = "";
+                teachingNotes.innerHTML = "";
+                document.querySelector("#molecule-name").textContent = t("failedTitle");
+                document.querySelector("#iupac-name").textContent = t("failedHint");
+                setStatus(error.message, "error");
+            }
+        }
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            loadMolecule(input.value.trim());
+        });
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            applyLanguage();
+        }
+
+        window.setLanguage = setLanguage;
+
+        ballButton.addEventListener("click", () => renderModel("ball"));
+        vdwButton.addEventListener("click", () => renderModel("vdw"));
+        window.addEventListener("resize", () => renderModel(currentStyle));
+
+        function confirmEntry() {
+            siteConfirmed = true;
+            warning.hidden = true;
+            document.body.classList.remove("site-locked");
+            resetWorkspace();
+            input.focus();
+        }
+
+        window.confirmEntry = confirmEntry;
+
+        window.addEventListener("pageshow", () => {
+            siteConfirmed = false;
+            warning.hidden = false;
+            document.body.classList.add("site-locked");
+            resetWorkspace();
+            confirmWarning.focus();
+        });
+
+        applyLanguage();
+        resetWorkspace();
+        confirmWarning.focus();
+    </script>
+</body>
+</html>
+

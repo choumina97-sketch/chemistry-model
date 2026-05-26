@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.env
+.netlify/
+node_modules/
+chem_flashcard_output/
+verification_*.png
+Git-*.exe

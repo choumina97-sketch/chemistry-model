@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molecular Visualization Platform</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="logo-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32" focusable="false">
+                    <path class="beaker-outline" d="M11 4h10M13 4v7.2L7.8 22.4C6.8 24.6 8.4 27 10.8 27h10.4c2.4 0 4-2.4 3-4.6L19 11.2V4" />
+                    <path class="beaker-liquid" d="M10.6 21.2h10.8l1.2 2.5c.3.7-.2 1.5-1 1.5H10.4c-.8 0-1.3-.8-1-1.5l1.2-2.5Z" />
+                    <circle class="beaker-bubble" cx="13" cy="18" r="1.15" />
+                    <circle class="beaker-bubble" cx="18.7" cy="16.5" r="0.9" />
+                </svg>
+            </span>
+            <span>Molecular Visualization Platform</span>
+        </a>
+        <div class="system-status">
+            <span>PubChem Ready</span>
+            <span>3Dmol Active</span>
+            <span>Static Web</span>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="hero-primary">
+            <p class="eyebrow">Research Chemistry Platform</p>
+            <h1>Molecular Visualization Workbench</h1>
+            <p class="hero-copy">Search English compound names or valid SMILES. This public Netlify version uses open web databases for visualization and educational analysis.</p>
+            <form id="search-form" class="search-form">
+                <label for="molecule-input">Search molecule name or SMILES</label>
+                <div class="search-row">
+                    <input id="molecule-input" type="search" placeholder="Enter compound name or valid SMILES" autocomplete="off">
+                    <button type="submit">Analyze</button>
+                </div>
+                <p class="search-hint">Search supports English compound names or valid SMILES only.</p>
+            </form>
+        </section>
+
+        <section class="viewer-card">
+            <div class="viewer-header">
+                <div>
+                    <p class="section-kicker">Molecular Viewer Section</p>
+                    <h2 id="molecule-name">No molecule selected</h2>
+                    <p id="iupac-name">Enter a compound name or SMILES, then analyze.</p>
+                </div>
+                <div class="model-toggle">
+                    <button id="ball-button" class="toggle-button active" type="button">Ball-Stick</button>
+                    <button id="vdw-button" class="toggle-button" type="button">VDW / Space Filling</button>
+                </div>
+            </div>
+            <div id="status" class="status" hidden></div>
+            <div class="viewer-frame">
+                <div id="viewer" data-empty-label="No molecular model loaded"></div>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            <article class="dashboard-card properties-card">
+                <div class="card-title-row">
+                    <p class="section-kicker">Molecular Information Panel</p>
+                    <h2>Molecular Properties</h2>
+                </div>
+                <dl id="properties" class="properties-grid"></dl>
+            </article>
+            <article class="dashboard-card">
+                <div class="card-title-row">
+                    <p class="section-kicker">Functional Group Analysis</p>
+                    <h2>Detected Motifs</h2>
+                </div>
+                <div id="functional-groups" class="chips"></div>
+            </article>
+            <article class="dashboard-card notes-card">
+                <div class="card-title-row">
+                    <p class="section-kicker">Teaching Notes</p>
+                    <h2>Chemistry Teaching Notes</h2>
+                </div>
+                <ul id="teaching-notes" class="analysis-list"></ul>
+            </article>
+        </section>
+
+        <section class="references-section">
+            <div class="card-title-row">
+                <p class="section-kicker">Scientific References</p>
+                <h2>Data Sources & Scientific References</h2>
+            </div>
+            <p>This public version uses open scientific databases and web visualization resources for educational molecular visualization.</p>
+            <ul class="reference-list">
+                <li><strong>PubChem (NCBI/NIH)</strong><span>Molecular structures, identifiers, and chemical properties</span><a href="https://pubchem.ncbi.nlm.nih.gov" target="_blank" rel="noreferrer">pubchem.ncbi.nlm.nih.gov</a></li>
+                <li><strong>3Dmol.js</strong><span>Web-based molecular visualization engine</span><a href="https://3dmol.csb.pitt.edu" target="_blank" rel="noreferrer">3dmol.csb.pitt.edu</a></li>
+                <li><strong>OPSIN</strong><span>Open parser for IUPAC chemical nomenclature</span><a href="https://opsin.ch.cam.ac.uk" target="_blank" rel="noreferrer">opsin.ch.cam.ac.uk</a></li>
+                <li><strong>NCI/Cactus</strong><span>Chemical name-to-structure resolution</span><a href="https://cactus.nci.nih.gov/chemical/structure" target="_blank" rel="noreferrer">cactus.nci.nih.gov</a></li>
+            </ul>
+            <div class="reference-disclaimer">
+                <p>This platform is intended for educational and visualization purposes only. Verify critical chemical information using authoritative scientific references.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <span>PubChem / 3Dmol.js / OPSIN / NCI Cactus</span>
+        <span>Computational chemistry visualization interface</span>
+    </footer>
+
+    <script>
+        const form = document.querySelector("#search-form");
+        const input = document.querySelector("#molecule-input");
+        const statusBox = document.querySelector("#status");
+        const viewerElement = document.querySelector("#viewer");
+        const properties = document.querySelector("#properties");
+        const functionalGroups = document.querySelector("#functional-groups");
+        const teachingNotes = document.querySelector("#teaching-notes");
+        const ballButton = document.querySelector("#ball-button");
+        const vdwButton = document.querySelector("#vdw-button");
+
+        let viewer;
+        let currentSdf = "";
+        let currentStyle = "ball";
+
+        const aliases = {
+            "ddt": "DDT",
+            "vitamin c": "ascorbic acid",
+            "dichloro-diphenyl-trichloroethane": "DDT"
+        };
+
+        function setStatus(message, kind = "info") {
+            statusBox.textContent = message;
+            statusBox.dataset.kind = kind;
+            statusBox.hidden = !message;
+        }
+
+        function normalizeName(name) {
+            const cleaned = name.trim().replace(/\s+/g, " ");
+            return aliases[cleaned.toLowerCase()] || cleaned;
+        }
+
+        async function fetchJson(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Molecule lookup failed.");
+            return response.json();
+        }
+
+        async function resolvePubChem(name) {
+            const encoded = encodeURIComponent(normalizeName(name));
+            const cidData = await fetchJson(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encoded}/cids/JSON`);
+            const cid = cidData.IdentifierList?.CID?.[0];
+            if (!cid) throw new Error("No PubChem CID found.");
+            const fields = "MolecularFormula,MolecularWeight,ExactMass,XLogP,TPSA,HBondDonorCount,HBondAcceptorCount,RotatableBondCount,IUPACName,CanonicalSMILES,IsomericSMILES";
+            const propData = await fetchJson(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/${fields}/JSON`);
+            const props = propData.PropertyTable?.Properties?.[0];
+            if (!props) throw new Error("No PubChem properties found.");
+            let sdfResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/record/SDF?record_type=3d`);
+            if (!sdfResponse.ok) {
+                sdfResponse = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/record/SDF?record_type=2d`);
+            }
+            if (!sdfResponse.ok) throw new Error("No structure record found.");
+            return { cid, props, sdf: await sdfResponse.text() };
+        }
+
+        function ensureViewer() {
+            if (!viewer && window.$3Dmol) {
+                viewer = $3Dmol.createViewer(viewerElement, { backgroundColor: "#fffdf8" });
+            }
+            return viewer;
+        }
+
+        function renderModel(style = currentStyle) {
+            currentStyle = style;
+            ballButton.classList.toggle("active", style === "ball");
+            vdwButton.classList.toggle("active", style === "vdw");
+            if (!currentSdf) return;
+            const activeViewer = ensureViewer();
+            activeViewer.clear();
+            activeViewer.addModel(currentSdf, "sdf");
+            if (style === "ball") {
+                activeViewer.setStyle({}, { stick: { radius: 0.16 }, sphere: { scale: 0.28 } });
+            } else {
+                activeViewer.setStyle({}, { sphere: { scale: 1.0 } });
+            }
+            activeViewer.zoomTo();
+            activeViewer.render();
+        }
+
+        function detectGroups(smiles) {
+            const groups = [];
+            if (/[OH]/.test(smiles) || smiles.includes("O")) groups.push("Oxygen-containing group");
+            if (smiles.includes("C(=O)O") || smiles.includes("C(=O)[O-]")) groups.push("Carboxylic acid / carboxylate motif");
+            if (smiles.includes("C(=O)O") || smiles.includes("OC(=O)")) groups.push("Ester motif");
+            if (smiles.includes("N")) groups.push("Nitrogen-containing group");
+            if (/[FClBrI]/.test(smiles)) groups.push("Halogenated motif");
+            if (smiles.includes("c1") || smiles.includes("C1=CC")) groups.push("Aromatic / ring motif");
+            return [...new Set(groups)];
+        }
+
+        function buildNotes(groups) {
+            const notes = [];
+            if (groups.some((g) => g.includes("Oxygen"))) notes.push("Oxygen-containing groups may affect polarity and hydrogen bonding.");
+            if (groups.some((g) => g.includes("Carboxylic"))) notes.push("Carboxylic acid motifs are useful for discussing acidity and resonance.");
+            if (groups.some((g) => g.includes("Halogen"))) notes.push("Halogenated motifs can influence lipophilicity and molecular persistence.");
+            if (groups.some((g) => g.includes("Aromatic"))) notes.push("Aromatic or ring motifs are useful for discussing shape, resonance, and substitution patterns.");
+            return notes.length ? notes : ["Inspect the structure manually for reaction sites and bonding patterns."];
+        }
+
+        function renderProperties(data) {
+            const p = data.props;
+            const rows = [
+                ["Formula", p.MolecularFormula],
+                ["Molecular Weight", `${p.MolecularWeight} g/mol`],
+                ["Exact Mass", p.ExactMass || "Unknown"],
+                ["XLogP", p.XLogP ?? "Unknown"],
+                ["TPSA", p.TPSA ?? "Unknown"],
+                ["H-bond Donor", p.HBondDonorCount ?? "Unknown"],
+                ["H-bond Acceptor", p.HBondAcceptorCount ?? "Unknown"],
+                ["Rotatable Bonds", p.RotatableBondCount ?? "Unknown"],
+                ["PubChem CID", data.cid],
+                ["IUPAC Name", p.IUPACName || "Unknown"],
+                ["Source", "PubChem"]
+            ];
+            properties.innerHTML = rows.map(([label, value]) => `<div class="property-row"><dt>${label}</dt><dd>${value}</dd></div>`).join("");
+        }
+
+        function renderAnalysis(smiles) {
+            const groups = detectGroups(smiles || "");
+            functionalGroups.innerHTML = groups.length
+                ? groups.map((group) => `<span class="chip">${group}</span>`).join("")
+                : `<span class="muted">No common motif detected</span>`;
+            teachingNotes.innerHTML = buildNotes(groups).map((note) => `<li>${note}</li>`).join("");
+        }
+
+        async function loadMolecule(name) {
+            if (!name) {
+                setStatus("Enter an English compound name or valid SMILES first.", "error");
+                return;
+            }
+            setStatus("Running PubChem lookup...");
+            document.querySelector("#molecule-name").textContent = name;
+            document.querySelector("#iupac-name").textContent = "Resolving molecular identity...";
+            try {
+                const data = await resolvePubChem(name);
+                const smiles = data.props.IsomericSMILES || data.props.CanonicalSMILES || "";
+                currentSdf = data.sdf;
+                document.querySelector("#molecule-name").textContent = normalizeName(name).toUpperCase();
+                document.querySelector("#iupac-name").textContent = `IUPAC: ${data.props.IUPACName || "Unknown"}`;
+                renderProperties(data);
+                renderAnalysis(smiles);
+                renderModel(currentStyle);
+                setStatus("");
+            } catch (error) {
+                currentSdf = "";
+                properties.innerHTML = "";
+                functionalGroups.innerHTML = "";
+                teachingNotes.innerHTML = "";
+                if (viewer) {
+                    viewer.clear();
+                    viewer.render();
+                }
+                document.querySelector("#molecule-name").textContent = "Lookup failed";
+                document.querySelector("#iupac-name").textContent = "Try a common English compound name or valid SMILES.";
+                setStatus(error.message, "error");
+            }
+        }
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            loadMolecule(input.value.trim());
+        });
+
+        ballButton.addEventListener("click", () => renderModel("ball"));
+        vdwButton.addEventListener("click", () => renderModel("vdw"));
+    </script>
+</body>
+</html>
