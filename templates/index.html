@@ -106,6 +106,7 @@
                 <div class="model-toggle" aria-label="3D model style">
                     <button id="ball-button" class="toggle-button active" type="button">Ball-Stick</button>
                     <button id="vdw-button" class="toggle-button" type="button" data-i18n="vdwButton">VDW / Space Filling</button>
+                    <button id="legend-toggle" class="toggle-button legend-toggle" type="button" data-i18n="legendButton" aria-expanded="false" aria-controls="atomic-legend">Atomic Color Legend</button>
                 </div>
             </div>
 
@@ -113,6 +114,16 @@
             <div class="viewer-frame">
                 <div id="viewer"></div>
             </div>
+            <section id="atomic-legend" class="atomic-legend" hidden>
+                <div class="legend-title-row">
+                    <div>
+                        <p class="section-kicker" data-i18n="legendKicker">Atomic Color Legend</p>
+                        <h3 data-i18n="legendTitle">Element Color Key</h3>
+                    </div>
+                    <p data-i18n="legendSubtitle">Color scheme based on standard CPK molecular visualization conventions.</p>
+                </div>
+                <div id="legend-list" class="legend-list"></div>
+            </section>
         </section>
 
         <section class="dashboard-grid" aria-label="Molecular information dashboard">
@@ -181,6 +192,9 @@
         const viewerElement = document.querySelector("#viewer");
         const ballButton = document.querySelector("#ball-button");
         const vdwButton = document.querySelector("#vdw-button");
+        const legendToggle = document.querySelector("#legend-toggle");
+        const atomicLegend = document.querySelector("#atomic-legend");
+        const legendList = document.querySelector("#legend-list");
         const properties = document.querySelector("#properties");
         const functionalGroups = document.querySelector("#functional-groups");
         const teachingNotes = document.querySelector("#teaching-notes");
@@ -194,6 +208,34 @@
         let siteConfirmed = false;
         let currentLang = "en";
         let currentMoleculeData = null;
+        let currentElements = [];
+
+        const atomicColors = {
+            H: { name: "Hydrogen", zhName: "氫", color: "White", hex: "#FFFFFF" },
+            C: { name: "Carbon", zhName: "碳", color: "Dark Gray / Graphite", hex: "#4B4B4B" },
+            N: { name: "Nitrogen", zhName: "氮", color: "Blue", hex: "#3050F8" },
+            O: { name: "Oxygen", zhName: "氧", color: "Red", hex: "#FF0D0D" },
+            F: { name: "Fluorine", zhName: "氟", color: "Light Green", hex: "#90E050" },
+            Cl: { name: "Chlorine", zhName: "氯", color: "Green", hex: "#1FF01F" },
+            Br: { name: "Bromine", zhName: "溴", color: "Dark Red / Brown", hex: "#A62929" },
+            I: { name: "Iodine", zhName: "碘", color: "Purple", hex: "#940094" },
+            P: { name: "Phosphorus", zhName: "磷", color: "Orange", hex: "#FF8000" },
+            S: { name: "Sulfur", zhName: "硫", color: "Yellow", hex: "#FFFF30" },
+            B: { name: "Boron", zhName: "硼", color: "Salmon", hex: "#FFB5B5" },
+            Si: { name: "Silicon", zhName: "矽", color: "Beige / Tan", hex: "#F0C8A0" },
+            Na: { name: "Sodium", zhName: "鈉", color: "Violet", hex: "#AB5CF2" },
+            K: { name: "Potassium", zhName: "鉀", color: "Purple", hex: "#8F40D4" },
+            Ca: { name: "Calcium", zhName: "鈣", color: "Green", hex: "#3DFF00" },
+            Fe: { name: "Iron", zhName: "鐵", color: "Orange-Brown", hex: "#E06633" },
+            Cu: { name: "Copper", zhName: "銅", color: "Copper Orange", hex: "#C88033" },
+            Zn: { name: "Zinc", zhName: "鋅", color: "Slate Gray", hex: "#7D80B0" },
+            Mg: { name: "Magnesium", zhName: "鎂", color: "Bright Green", hex: "#8AFF00" },
+        };
+
+        const atomicColorStyle = Object.fromEntries(
+            Object.entries(atomicColors).map(([symbol, item]) => [symbol, item.hex])
+        );
+        const atomColor = (atom) => atomicColorStyle[atom.elem] || "#B0B7C3";
 
         const translations = {
             en: {
@@ -220,6 +262,11 @@
                 noModel: "No molecular model loaded",
                 ballButton: "Ball-Stick",
                 vdwButton: "VDW / Space Filling",
+                legendButton: "Atomic Color Legend",
+                legendKicker: "Atomic Color Legend",
+                legendTitle: "Element Color Key",
+                legendSubtitle: "Color scheme based on standard CPK molecular visualization conventions.",
+                legendEmpty: "Analyze a molecule to show only the elements present in it.",
                 infoPanel: "Molecular Information Panel",
                 propertiesTitle: "Molecular Properties",
                 functionalPanel: "Functional Group Analysis",
@@ -270,6 +317,11 @@
                 noModel: "尚未載入分子模型",
                 ballButton: "球棒模型",
                 vdwButton: "凡德瓦 / 空間填充",
+                legendButton: "原子顏色圖例",
+                legendKicker: "原子顏色圖例",
+                legendTitle: "元素顏色對照",
+                legendSubtitle: "配色依據標準 CPK 分子視覺化慣例。",
+                legendEmpty: "分析分子後，只會顯示該分子中存在的元素。",
                 infoPanel: "分子資訊面板",
                 propertiesTitle: "分子性質",
                 functionalPanel: "官能基分析",
@@ -367,6 +419,7 @@
             input.placeholder = t("searchPlaceholder");
             viewerElement.dataset.emptyLabel = t("noModel");
             ballButton.textContent = t("ballButton");
+            legendToggle.textContent = t("legendButton");
             confirmWarning.textContent = t("confirm");
             languageButtons.forEach((button) => {
                 button.classList.toggle("active", button.dataset.languageSet === currentLang);
@@ -386,9 +439,11 @@
                 document.querySelector("#iupac-name").textContent = `${t("iupacPrefix")} ${currentMoleculeData.iupac_name}`;
                 renderProperties(currentMoleculeData);
                 renderTextSections(currentMoleculeData);
+                renderLegend();
             } else {
                 document.querySelector("#molecule-name").textContent = t("noMolecule");
                 document.querySelector("#iupac-name").textContent = t("emptyHint");
+                renderLegend();
             }
         }
 
@@ -396,11 +451,13 @@
             input.value = "";
             currentMolBlock = "";
             currentMoleculeData = null;
+            currentElements = [];
             document.querySelector("#molecule-name").textContent = t("noMolecule");
             document.querySelector("#iupac-name").textContent = t("emptyHint");
             properties.innerHTML = "";
             functionalGroups.innerHTML = "";
             teachingNotes.innerHTML = "";
+            renderLegend();
             setStatus("");
 
             if (viewer) {
@@ -420,6 +477,37 @@
                 viewer = $3Dmol.createViewer(viewerElement, { backgroundColor: "#fffdf8" });
             }
             return viewer;
+        }
+
+        function getPresentElementsFromMolBlock(molBlock) {
+            const elements = new Set();
+            molBlock.split(/\r?\n/).forEach((line) => {
+                const symbol = line.slice(31, 34).trim();
+                if (atomicColors[symbol]) {
+                    elements.add(symbol);
+                }
+            });
+            return Object.keys(atomicColors).filter((symbol) => elements.has(symbol));
+        }
+
+        function renderLegend() {
+            if (!currentElements.length) {
+                legendList.innerHTML = `<span class="muted">${t("legendEmpty")}</span>`;
+                return;
+            }
+
+            legendList.innerHTML = currentElements.map((symbol) => {
+                const item = atomicColors[symbol];
+                const name = currentLang === "zh" ? item.zhName : item.name;
+                const ring = symbol === "H" || symbol === "S" ? " legend-swatch-ring" : "";
+                return `
+                    <div class="legend-entry">
+                        <span class="legend-swatch${ring}" style="--atom-color: ${item.hex}"></span>
+                        <strong>${symbol}</strong>
+                        <span>${name}</span>
+                    </div>
+                `;
+            }).join("");
         }
 
         function renderModel(style = currentStyle) {
@@ -442,12 +530,12 @@
 
             if (style === "ball") {
                 activeViewer.setStyle({}, {
-                    stick: { radius: 0.16, colorscheme: "Jmol" },
-                    sphere: { scale: 0.28, colorscheme: "Jmol" }
+                    stick: { radius: 0.16, colorfunc: atomColor },
+                    sphere: { scale: 0.28, colorfunc: atomColor }
                 });
             } else {
                 activeViewer.setStyle({}, {
-                    sphere: { scale: 1.0, colorscheme: "Jmol" }
+                    sphere: { scale: 1.0, colorfunc: atomColor }
                 });
             }
 
@@ -522,12 +610,15 @@
                 document.querySelector("#iupac-name").textContent = `${t("iupacPrefix")} ${data.iupac_name}`;
                 currentMolBlock = data.mol_block;
                 currentMoleculeData = data;
+                currentElements = getPresentElementsFromMolBlock(currentMolBlock);
                 renderProperties(data);
                 renderTextSections(data);
+                renderLegend();
                 renderModel(currentStyle);
                 setStatus("");
             } catch (error) {
                 currentMolBlock = "";
+                currentElements = [];
                 if (viewer) {
                     viewer.clear();
                     viewer.render();
@@ -536,6 +627,7 @@
                 properties.innerHTML = "";
                 functionalGroups.innerHTML = "";
                 teachingNotes.innerHTML = "";
+                renderLegend();
                 document.querySelector("#molecule-name").textContent = t("failedTitle");
                 document.querySelector("#iupac-name").textContent = t("failedHint");
                 setStatus(error.message, "error");
@@ -556,6 +648,11 @@
 
         ballButton.addEventListener("click", () => renderModel("ball"));
         vdwButton.addEventListener("click", () => renderModel("vdw"));
+        legendToggle.addEventListener("click", () => {
+            const willOpen = atomicLegend.hidden;
+            atomicLegend.hidden = !willOpen;
+            legendToggle.setAttribute("aria-expanded", String(willOpen));
+        });
         window.addEventListener("resize", () => renderModel(currentStyle));
 
         function confirmEntry() {

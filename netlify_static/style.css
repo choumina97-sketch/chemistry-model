@@ -581,6 +581,81 @@ a {
     max-height: 100%;
 }
 
+.atomic-legend {
+    margin: 0 30px 30px;
+    border: 1px solid rgba(34, 211, 238, 0.28);
+    border-radius: 10px;
+    background:
+        linear-gradient(135deg, rgba(16, 25, 35, 0.88), rgba(22, 35, 49, 0.82));
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18), 0 0 22px rgba(22, 133, 138, 0.08);
+    color: #f8fafc;
+    padding: 14px;
+}
+
+.atomic-legend[hidden] {
+    display: none;
+}
+
+.legend-title-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.9fr);
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 12px;
+}
+
+.legend-title-row h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.legend-title-row p:last-child {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.legend-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 8px;
+}
+
+.legend-entry {
+    display: grid;
+    grid-template-columns: 16px minmax(24px, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    border: 1px solid rgba(203, 213, 225, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.07);
+    padding: 7px 9px;
+}
+
+.legend-entry strong {
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.legend-entry span:last-child {
+    color: #dbe7ec;
+    font-size: 12px;
+}
+
+.legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--atom-color);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--atom-color) 55%, transparent);
+}
+
+.legend-swatch-ring {
+    border: 1px solid rgba(15, 23, 42, 0.28);
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
@@ -762,6 +837,15 @@ dd {
     .model-toggle {
         width: 100%;
         display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .atomic-legend {
+        margin-left: 18px;
+        margin-right: 18px;
+    }
+
+    .legend-title-row {
         grid-template-columns: 1fr;
     }
 
