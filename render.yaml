@@ -9,3 +9,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
+      - key: GOOGLE_SHEET_ID
+        value: 1Mar6ZRn1rOG8AH1O_CGMVs5v5xrLDqdaEpbhroX0Xvw

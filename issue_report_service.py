@@ -12,6 +12,7 @@ from openpyxl import Workbook, load_workbook
 
 REPORT_DIR = Path("reports")
 REPORT_FILE = REPORT_DIR / "issue_reports.xlsx"
+DEFAULT_GOOGLE_SHEET_ID = "1Mar6ZRn1rOG8AH1O_CGMVs5v5xrLDqdaEpbhroX0Xvw"
 REPORT_HEADERS = [
     "Timestamp UTC",
     "Molecule Query",
@@ -29,7 +30,7 @@ _report_lock = Lock()
 
 def save_issue_report(report: dict[str, Any]) -> dict[str, str]:
     row = _build_report_row(report)
-    google_sheet_id = os.getenv("GOOGLE_SHEET_ID", "").strip()
+    google_sheet_id = os.getenv("GOOGLE_SHEET_ID", DEFAULT_GOOGLE_SHEET_ID).strip()
 
     if google_sheet_id:
         _save_issue_report_to_google_sheet(google_sheet_id, row)

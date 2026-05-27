@@ -3,12 +3,12 @@
 The issue report form writes to Google Sheets when these Render environment variables are set:
 
 ```text
-GOOGLE_SHEET_ID=your_google_sheet_id
+GOOGLE_SHEET_ID=1Mar6ZRn1rOG8AH1O_CGMVs5v5xrLDqdaEpbhroX0Xvw
 GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account", ...}
 GOOGLE_SHEET_WORKSHEET=Issue Reports
 ```
 
-`GOOGLE_SHEET_WORKSHEET` is optional. If it is not set, the app uses `Issue Reports`.
+`GOOGLE_SHEET_ID` is already set in `render.yaml` for this project. `GOOGLE_SHEET_WORKSHEET` is optional. If it is not set, the app uses `Issue Reports`.
 
 ## Setup
 
