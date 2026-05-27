@@ -4,5 +4,3 @@ jinja2
 requests
 rdkit
 openpyxl
-gspread
-google-auth

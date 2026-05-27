@@ -9,9 +9,19 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
-      - key: GOOGLE_SHEET_ID
-        value: 1Mar6ZRn1rOG8AH1O_CGMVs5v5xrLDqdaEpbhroX0Xvw
-      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+      - key: REPORT_STORAGE_MODE
+        value: google_form
+      - key: GOOGLE_FORM_ACTION_URL
         sync: false
-      - key: GOOGLE_SHEET_WORKSHEET
-        value: Issue Reports
+      - key: GOOGLE_FORM_ENTRY_MOLECULE
+        sync: false
+      - key: GOOGLE_FORM_ENTRY_TYPE
+        sync: false
+      - key: GOOGLE_FORM_ENTRY_MESSAGE
+        sync: false
+      - key: GOOGLE_FORM_ENTRY_CONTACT
+        sync: false
+      - key: GOOGLE_FORM_ENTRY_PAGE_URL
+        sync: false
+      - key: GOOGLE_FORM_ENTRY_USER_AGENT
+        sync: false
