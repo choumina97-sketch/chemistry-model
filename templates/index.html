@@ -102,7 +102,6 @@
                     <p class="section-kicker" data-i18n="viewerSection">Molecular Viewer Section</p>
                     <h2 id="molecule-name">No molecule selected</h2>
                     <p id="iupac-name">Enter a compound name or SMILES, then generate a model.</p>
-                    <button id="legend-toggle" class="legend-open-button" type="button" data-i18n="legendButton" aria-expanded="false" aria-controls="atomic-legend">Atomic Color Legend</button>
                 </div>
                 <div class="model-toggle" aria-label="3D model style">
                     <button id="ball-button" class="toggle-button active" type="button">Ball-Stick</button>
@@ -112,6 +111,9 @@
 
             <div id="status" class="status" hidden></div>
             <div class="viewer-frame">
+                <div class="viewer-tools">
+                    <button id="legend-toggle" class="legend-open-button" type="button" data-i18n="legendButton" aria-expanded="false" aria-controls="atomic-legend">Atomic Color Guide</button>
+                </div>
                 <section id="atomic-legend" class="atomic-legend" hidden>
                     <button id="legend-close" class="legend-close" type="button" aria-label="Close atomic color legend">×</button>
                     <div class="legend-title-row">
@@ -213,25 +215,25 @@
         let currentElements = [];
 
         const atomicColors = {
-            H: { name: "Hydrogen", zhName: "氫", color: "White", hex: "#FFFFFF" },
-            C: { name: "Carbon", zhName: "碳", color: "Dark Gray / Graphite", hex: "#4B4B4B" },
-            N: { name: "Nitrogen", zhName: "氮", color: "Blue", hex: "#3050F8" },
-            O: { name: "Oxygen", zhName: "氧", color: "Red", hex: "#FF0D0D" },
-            F: { name: "Fluorine", zhName: "氟", color: "Light Green", hex: "#90E050" },
-            Cl: { name: "Chlorine", zhName: "氯", color: "Green", hex: "#1FF01F" },
-            Br: { name: "Bromine", zhName: "溴", color: "Dark Red / Brown", hex: "#A62929" },
-            I: { name: "Iodine", zhName: "碘", color: "Purple", hex: "#940094" },
-            P: { name: "Phosphorus", zhName: "磷", color: "Orange", hex: "#FF8000" },
-            S: { name: "Sulfur", zhName: "硫", color: "Yellow", hex: "#FFFF30" },
-            B: { name: "Boron", zhName: "硼", color: "Salmon", hex: "#FFB5B5" },
-            Si: { name: "Silicon", zhName: "矽", color: "Beige / Tan", hex: "#F0C8A0" },
-            Na: { name: "Sodium", zhName: "鈉", color: "Violet", hex: "#AB5CF2" },
-            K: { name: "Potassium", zhName: "鉀", color: "Purple", hex: "#8F40D4" },
-            Ca: { name: "Calcium", zhName: "鈣", color: "Green", hex: "#3DFF00" },
-            Fe: { name: "Iron", zhName: "鐵", color: "Orange-Brown", hex: "#E06633" },
-            Cu: { name: "Copper", zhName: "銅", color: "Copper Orange", hex: "#C88033" },
-            Zn: { name: "Zinc", zhName: "鋅", color: "Slate Gray", hex: "#7D80B0" },
-            Mg: { name: "Magnesium", zhName: "鎂", color: "Bright Green", hex: "#8AFF00" },
+            H: { name: "Hydrogen", zhName: "氫", color: "White", zhColor: "白色", hex: "#FFFFFF" },
+            C: { name: "Carbon", zhName: "碳", color: "Dark Gray / Graphite", zhColor: "深灰黑色", hex: "#4B4B4B" },
+            N: { name: "Nitrogen", zhName: "氮", color: "Blue", zhColor: "藍色", hex: "#3050F8" },
+            O: { name: "Oxygen", zhName: "氧", color: "Red", zhColor: "紅色", hex: "#FF0D0D" },
+            F: { name: "Fluorine", zhName: "氟", color: "Light Green", zhColor: "淺綠色", hex: "#90E050" },
+            Cl: { name: "Chlorine", zhName: "氯", color: "Green", zhColor: "綠色", hex: "#1FF01F" },
+            Br: { name: "Bromine", zhName: "溴", color: "Dark Red / Brown", zhColor: "暗紅棕色", hex: "#A62929" },
+            I: { name: "Iodine", zhName: "碘", color: "Purple", zhColor: "紫色", hex: "#940094" },
+            P: { name: "Phosphorus", zhName: "磷", color: "Orange", zhColor: "橘色", hex: "#FF8000" },
+            S: { name: "Sulfur", zhName: "硫", color: "Yellow", zhColor: "黃色", hex: "#FFFF30" },
+            B: { name: "Boron", zhName: "硼", color: "Salmon", zhColor: "鮭粉色", hex: "#FFB5B5" },
+            Si: { name: "Silicon", zhName: "矽", color: "Beige / Tan", zhColor: "米褐色", hex: "#F0C8A0" },
+            Na: { name: "Sodium", zhName: "鈉", color: "Violet", zhColor: "紫羅蘭色", hex: "#AB5CF2" },
+            K: { name: "Potassium", zhName: "鉀", color: "Purple", zhColor: "紫色", hex: "#8F40D4" },
+            Ca: { name: "Calcium", zhName: "鈣", color: "Green", zhColor: "綠色", hex: "#3DFF00" },
+            Fe: { name: "Iron", zhName: "鐵", color: "Orange-Brown", zhColor: "橘棕色", hex: "#E06633" },
+            Cu: { name: "Copper", zhName: "銅", color: "Copper Orange", zhColor: "銅橘色", hex: "#C88033" },
+            Zn: { name: "Zinc", zhName: "鋅", color: "Slate Gray", zhColor: "板岩灰色", hex: "#7D80B0" },
+            Mg: { name: "Magnesium", zhName: "鎂", color: "Bright Green", zhColor: "亮綠色", hex: "#8AFF00" },
         };
 
         const atomicColorStyle = Object.fromEntries(
@@ -264,12 +266,15 @@
                 noModel: "No molecular model loaded",
                 ballButton: "Ball-Stick",
                 vdwButton: "VDW / Space Filling",
-                legendButton: "Atomic Color Legend",
+                legendButton: "Atom Color Guide",
                 legendKicker: "Atomic Color Legend",
                 legendTitle: "Element Color Key",
                 legendSubtitle: "Color scheme based on standard CPK molecular visualization conventions.",
                 legendEmpty: "Analyze a molecule to show only the elements present in it.",
                 legendClose: "Close atomic color legend",
+                legendColorHeader: "Color",
+                legendSymbolHeader: "Symbol",
+                legendElementHeader: "Element",
                 infoPanel: "Molecular Information Panel",
                 propertiesTitle: "Molecular Properties",
                 functionalPanel: "Functional Group Analysis",
@@ -320,12 +325,15 @@
                 noModel: "尚未載入分子模型",
                 ballButton: "球棒模型",
                 vdwButton: "凡德瓦 / 空間填充",
-                legendButton: "原子顏色圖例",
+                legendButton: "原子顏色說明",
                 legendKicker: "原子顏色圖例",
                 legendTitle: "元素顏色對照",
                 legendSubtitle: "配色依據標準 CPK 分子視覺化慣例。",
                 legendEmpty: "分析分子後，只會顯示該分子中存在的元素。",
                 legendClose: "關閉原子顏色圖例",
+                legendColorHeader: "顏色",
+                legendSymbolHeader: "符號",
+                legendElementHeader: "元素",
                 infoPanel: "分子資訊面板",
                 propertiesTitle: "分子性質",
                 functionalPanel: "官能基分析",
@@ -504,14 +512,22 @@
 
             legendList.innerHTML = `
                 <table class="legend-table">
+                    <thead>
+                        <tr>
+                            <th>${t("legendColorHeader")}</th>
+                            <th>${t("legendSymbolHeader")}</th>
+                            <th>${t("legendElementHeader")}</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         ${currentElements.map((symbol) => {
                 const item = atomicColors[symbol];
-                const name = currentLang === "zh" ? item.zhName : item.name;
+                const name = currentLang === "zh" ? `${item.zhName} (${item.name})` : item.name;
+                const colorName = currentLang === "zh" ? item.zhColor : item.color;
                 const ring = symbol === "H" || symbol === "S" ? " legend-swatch-ring" : "";
                 return `
                     <tr>
-                        <td><span class="legend-swatch${ring}" style="--atom-color: ${item.hex}"></span></td>
+                        <td><span class="legend-swatch${ring}" style="--atom-color: ${item.hex}"></span><span>${colorName}</span></td>
                         <td><strong>${symbol}</strong></td>
                         <td>${name}</td>
                     </tr>

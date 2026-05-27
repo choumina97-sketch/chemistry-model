@@ -586,32 +586,38 @@ a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 36px;
-    margin-top: 14px;
-    border: 1px solid rgba(45, 124, 159, 0.36);
+    min-height: 34px;
+    border: 1px solid rgba(120, 76, 20, 0.28);
     border-radius: 999px;
-    background: linear-gradient(135deg, #e7f7ff, #d8f2fb);
-    color: var(--data);
+    background: linear-gradient(135deg, #fff7d6, #ffd76a);
+    color: #69420f;
     cursor: pointer;
     font-size: 13px;
     font-weight: 900;
-    padding: 0 14px;
-    box-shadow: 0 8px 20px rgba(45, 124, 159, 0.12);
+    padding: 0 13px;
+    box-shadow: 0 8px 18px rgba(120, 76, 20, 0.16);
     transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .legend-open-button:hover {
     transform: translateY(-1px);
-    border-color: rgba(45, 124, 159, 0.6);
-    box-shadow: 0 12px 28px rgba(45, 124, 159, 0.16);
+    border-color: rgba(120, 76, 20, 0.5);
+    box-shadow: 0 12px 24px rgba(120, 76, 20, 0.2);
+}
+
+.viewer-tools {
+    position: absolute;
+    top: 42px;
+    left: 44px;
+    z-index: 5;
 }
 
 .atomic-legend {
     position: absolute;
-    top: 46px;
+    top: 88px;
     left: 50%;
     z-index: 4;
-    width: min(620px, calc(100% - 48px));
+    width: min(720px, calc(100% - 48px));
     border: 1px solid rgba(45, 124, 159, 0.3);
     border-radius: 10px;
     background: rgba(230, 247, 255, 0.94);
@@ -666,17 +672,31 @@ a {
     font-size: 13px;
 }
 
-.legend-table tr + tr {
+.legend-table thead {
+    color: var(--accent-dark);
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.legend-table th,
+.legend-table td {
+    padding: 7px 9px;
+    text-align: left;
+}
+
+.legend-table tbody tr {
     border-top: 1px solid rgba(45, 124, 159, 0.14);
 }
 
-.legend-table td {
-    padding: 7px 9px;
+.legend-table tbody tr + tr {
+    border-top: 1px solid rgba(45, 124, 159, 0.14);
 }
 
 .legend-table td:first-child {
-    width: 34px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 150px;
 }
 
 .legend-table td:nth-child(2) {
@@ -706,6 +726,7 @@ a {
 
 .legend-swatch {
     width: 14px;
+    flex: 0 0 14px;
     height: 14px;
     border-radius: 999px;
     background: var(--atom-color);
@@ -901,9 +922,27 @@ dd {
     }
 
     .atomic-legend {
-        top: 18px;
+        top: 68px;
         width: calc(100% - 28px);
         padding: 12px;
+    }
+
+    .viewer-tools {
+        top: 36px;
+        left: 28px;
+    }
+
+    .legend-table {
+        font-size: 12px;
+    }
+
+    .legend-table th,
+    .legend-table td {
+        padding: 7px 6px;
+    }
+
+    .legend-table td:first-child {
+        min-width: 116px;
     }
 
     .legend-title-row {
