@@ -40,13 +40,13 @@ Set these in Render:
 
 ```text
 REPORT_STORAGE_MODE=google_form
-GOOGLE_FORM_ACTION_URL=https://docs.google.com/forms/d/e/FORM_ID/formResponse
-GOOGLE_FORM_ENTRY_MOLECULE=entry.xxxxx
-GOOGLE_FORM_ENTRY_TYPE=entry.xxxxx
-GOOGLE_FORM_ENTRY_MESSAGE=entry.xxxxx
-GOOGLE_FORM_ENTRY_CONTACT=entry.xxxxx
-GOOGLE_FORM_ENTRY_PAGE_URL=entry.xxxxx
-GOOGLE_FORM_ENTRY_USER_AGENT=entry.xxxxx
+GOOGLE_FORM_ACTION_URL=https://docs.google.com/forms/d/e/1FAIpQLSfOhogo69jm-AcOhH0PSzCEsVY3SiIRkt9hOh9JK8I5iy278Q/formResponse
+GOOGLE_FORM_ENTRY_MOLECULE=entry.777196847
+GOOGLE_FORM_ENTRY_TYPE=entry.2089935924
+GOOGLE_FORM_ENTRY_MESSAGE=entry.511587003
+GOOGLE_FORM_ENTRY_CONTACT=entry.730782396
+GOOGLE_FORM_ENTRY_PAGE_URL=entry.2109422454
+GOOGLE_FORM_ENTRY_USER_AGENT=entry.437465040
 ```
 
 The app keeps the same `/api/report` endpoint. If the Google Form variables are
@@ -58,3 +58,7 @@ reports/issue_reports.xlsx
 
 On Render, `REPORT_STORAGE_MODE=google_form` makes missing Google Form settings
 fail clearly instead of silently writing to temporary local storage.
+
+If the app receives a 401 response from Google Forms, open the Google Form
+settings and turn off options that require sign-in, restrict responses to an
+organization, or limit users to one response.
