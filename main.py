@@ -49,7 +49,7 @@ def molecule(name: str = Query(..., min_length=1, description="Molecule name")):
 @app.post("/api/report")
 async def report_issue(report: IssueReport, request: Request):
     try:
-        saved_path = save_issue_report(
+        save_result = save_issue_report(
             {
                 **report.dict(),
                 "user_agent": request.headers.get("user-agent", ""),
@@ -61,4 +61,4 @@ async def report_issue(report: IssueReport, request: Request):
             detail="Could not save the issue report.",
         ) from exc
 
-    return {"status": "ok", "saved_to": str(saved_path)}
+    return {"status": "ok", **save_result}

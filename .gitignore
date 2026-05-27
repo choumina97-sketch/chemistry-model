@@ -4,6 +4,8 @@ __pycache__/
 venv/
 env/
 .env
+service-account*.json
+google-service-account*.json
 .netlify/
 node_modules/
 chem_flashcard_output/
