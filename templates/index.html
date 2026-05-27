@@ -102,28 +102,29 @@
                     <p class="section-kicker" data-i18n="viewerSection">Molecular Viewer Section</p>
                     <h2 id="molecule-name">No molecule selected</h2>
                     <p id="iupac-name">Enter a compound name or SMILES, then generate a model.</p>
+                    <button id="legend-toggle" class="legend-open-button" type="button" data-i18n="legendButton" aria-expanded="false" aria-controls="atomic-legend">Atomic Color Legend</button>
                 </div>
                 <div class="model-toggle" aria-label="3D model style">
                     <button id="ball-button" class="toggle-button active" type="button">Ball-Stick</button>
                     <button id="vdw-button" class="toggle-button" type="button" data-i18n="vdwButton">VDW / Space Filling</button>
-                    <button id="legend-toggle" class="toggle-button legend-toggle" type="button" data-i18n="legendButton" aria-expanded="false" aria-controls="atomic-legend">Atomic Color Legend</button>
                 </div>
             </div>
 
             <div id="status" class="status" hidden></div>
             <div class="viewer-frame">
+                <section id="atomic-legend" class="atomic-legend" hidden>
+                    <button id="legend-close" class="legend-close" type="button" aria-label="Close atomic color legend">×</button>
+                    <div class="legend-title-row">
+                        <div>
+                            <p class="section-kicker" data-i18n="legendKicker">Atomic Color Legend</p>
+                            <h3 data-i18n="legendTitle">Element Color Key</h3>
+                        </div>
+                        <p data-i18n="legendSubtitle">Color scheme based on standard CPK molecular visualization conventions.</p>
+                    </div>
+                    <div id="legend-list" class="legend-list"></div>
+                </section>
                 <div id="viewer"></div>
             </div>
-            <section id="atomic-legend" class="atomic-legend" hidden>
-                <div class="legend-title-row">
-                    <div>
-                        <p class="section-kicker" data-i18n="legendKicker">Atomic Color Legend</p>
-                        <h3 data-i18n="legendTitle">Element Color Key</h3>
-                    </div>
-                    <p data-i18n="legendSubtitle">Color scheme based on standard CPK molecular visualization conventions.</p>
-                </div>
-                <div id="legend-list" class="legend-list"></div>
-            </section>
         </section>
 
         <section class="dashboard-grid" aria-label="Molecular information dashboard">
@@ -193,6 +194,7 @@
         const ballButton = document.querySelector("#ball-button");
         const vdwButton = document.querySelector("#vdw-button");
         const legendToggle = document.querySelector("#legend-toggle");
+        const legendClose = document.querySelector("#legend-close");
         const atomicLegend = document.querySelector("#atomic-legend");
         const legendList = document.querySelector("#legend-list");
         const properties = document.querySelector("#properties");
@@ -267,6 +269,7 @@
                 legendTitle: "Element Color Key",
                 legendSubtitle: "Color scheme based on standard CPK molecular visualization conventions.",
                 legendEmpty: "Analyze a molecule to show only the elements present in it.",
+                legendClose: "Close atomic color legend",
                 infoPanel: "Molecular Information Panel",
                 propertiesTitle: "Molecular Properties",
                 functionalPanel: "Functional Group Analysis",
@@ -322,6 +325,7 @@
                 legendTitle: "元素顏色對照",
                 legendSubtitle: "配色依據標準 CPK 分子視覺化慣例。",
                 legendEmpty: "分析分子後，只會顯示該分子中存在的元素。",
+                legendClose: "關閉原子顏色圖例",
                 infoPanel: "分子資訊面板",
                 propertiesTitle: "分子性質",
                 functionalPanel: "官能基分析",
@@ -420,6 +424,7 @@
             viewerElement.dataset.emptyLabel = t("noModel");
             ballButton.textContent = t("ballButton");
             legendToggle.textContent = t("legendButton");
+            legendClose.setAttribute("aria-label", t("legendClose"));
             confirmWarning.textContent = t("confirm");
             languageButtons.forEach((button) => {
                 button.classList.toggle("active", button.dataset.languageSet === currentLang);
@@ -452,6 +457,7 @@
             currentMolBlock = "";
             currentMoleculeData = null;
             currentElements = [];
+            setLegendOpen(false);
             document.querySelector("#molecule-name").textContent = t("noMolecule");
             document.querySelector("#iupac-name").textContent = t("emptyHint");
             properties.innerHTML = "";
@@ -496,18 +502,29 @@
                 return;
             }
 
-            legendList.innerHTML = currentElements.map((symbol) => {
+            legendList.innerHTML = `
+                <table class="legend-table">
+                    <tbody>
+                        ${currentElements.map((symbol) => {
                 const item = atomicColors[symbol];
                 const name = currentLang === "zh" ? item.zhName : item.name;
                 const ring = symbol === "H" || symbol === "S" ? " legend-swatch-ring" : "";
                 return `
-                    <div class="legend-entry">
-                        <span class="legend-swatch${ring}" style="--atom-color: ${item.hex}"></span>
-                        <strong>${symbol}</strong>
-                        <span>${name}</span>
-                    </div>
+                    <tr>
+                        <td><span class="legend-swatch${ring}" style="--atom-color: ${item.hex}"></span></td>
+                        <td><strong>${symbol}</strong></td>
+                        <td>${name}</td>
+                    </tr>
                 `;
-            }).join("");
+            }).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function setLegendOpen(isOpen) {
+            atomicLegend.hidden = !isOpen;
+            legendToggle.setAttribute("aria-expanded", String(isOpen));
         }
 
         function renderModel(style = currentStyle) {
@@ -649,9 +666,10 @@
         ballButton.addEventListener("click", () => renderModel("ball"));
         vdwButton.addEventListener("click", () => renderModel("vdw"));
         legendToggle.addEventListener("click", () => {
-            const willOpen = atomicLegend.hidden;
-            atomicLegend.hidden = !willOpen;
-            legendToggle.setAttribute("aria-expanded", String(willOpen));
+            setLegendOpen(atomicLegend.hidden);
+        });
+        legendClose.addEventListener("click", () => {
+            setLegendOpen(false);
         });
         window.addEventListener("resize", () => renderModel(currentStyle));
 
