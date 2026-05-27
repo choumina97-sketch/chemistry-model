@@ -249,37 +249,22 @@ a {
 
 .logo-mark {
     position: relative;
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
     display: inline-grid;
     place-items: center;
-    border: 1px solid rgba(15, 138, 138, 0.38);
-    border-radius: 8px;
-    background: var(--console);
+    flex: 0 0 42px;
+    overflow: hidden;
+    border: 1px solid rgba(15, 138, 138, 0.22);
+    border-radius: 10px;
+    background: #0d1117;
 }
 
-.logo-mark svg {
-    width: 24px;
-    height: 24px;
-}
-
-.beaker-outline {
-    fill: none;
-    stroke: var(--accent-dark);
-    stroke-width: 2.1;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.beaker-liquid {
-    fill: rgba(22, 133, 138, 0.26);
-    stroke: rgba(22, 133, 138, 0.56);
-    stroke-width: 1.1;
-}
-
-.beaker-bubble {
-    fill: var(--signal);
-    opacity: 0.9;
+.logo-mark img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
 }
 
 .system-status {
@@ -1113,8 +1098,8 @@ body {
 }
 
 .logo-mark {
-    border-color: rgba(50, 184, 199, 0.42);
-    background: linear-gradient(135deg, #e5f7ff, #dff8f4);
+    border-color: rgba(50, 184, 199, 0.3);
+    background: #0d1117;
 }
 
 .system-status span::before {
