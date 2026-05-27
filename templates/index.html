@@ -155,6 +155,43 @@
             </article>
         </section>
 
+        <section class="report-section" aria-labelledby="report-title">
+            <div class="card-title-row">
+                <p class="section-kicker" data-i18n="reportKicker">Issue Report</p>
+                <h2 id="report-title" data-i18n="reportTitle">Report a Website Problem</h2>
+            </div>
+            <form id="report-form" class="report-form">
+                <div class="report-grid">
+                    <label>
+                        <span data-i18n="reportMoleculeLabel">Related molecule</span>
+                        <input id="report-molecule" name="molecule_query" type="text" autocomplete="off">
+                    </label>
+                    <label>
+                        <span data-i18n="reportTypeLabel">Problem type</span>
+                        <select id="report-type" name="report_type">
+                            <option value="wrong-structure" data-i18n="reportTypeStructure">Wrong molecular structure</option>
+                            <option value="viewer" data-i18n="reportTypeViewer">3D viewer issue</option>
+                            <option value="translation" data-i18n="reportTypeTranslation">Translation issue</option>
+                            <option value="layout" data-i18n="reportTypeLayout">Layout or mobile display</option>
+                            <option value="other" data-i18n="reportTypeOther">Other</option>
+                        </select>
+                    </label>
+                </div>
+                <label>
+                    <span data-i18n="reportMessageLabel">What went wrong?</span>
+                    <textarea id="report-message" name="message" rows="4" required></textarea>
+                </label>
+                <div class="report-grid">
+                    <label>
+                        <span data-i18n="reportContactLabel">Contact (optional)</span>
+                        <input id="report-contact" name="contact" type="text" autocomplete="off">
+                    </label>
+                    <button type="submit" data-i18n="reportSubmit">Submit Report</button>
+                </div>
+                <p id="report-status" class="report-status" hidden></p>
+            </form>
+        </section>
+
         <section class="references-section" aria-labelledby="references-title">
             <div class="card-title-row">
                 <p class="section-kicker">Scientific References</p>
@@ -202,6 +239,9 @@
         const properties = document.querySelector("#properties");
         const functionalGroups = document.querySelector("#functional-groups");
         const teachingNotes = document.querySelector("#teaching-notes");
+        const reportForm = document.querySelector("#report-form");
+        const reportMolecule = document.querySelector("#report-molecule");
+        const reportStatus = document.querySelector("#report-status");
         const warning = document.querySelector("#entry-warning");
         const confirmWarning = document.querySelector("#confirm-warning");
         const languageButtons = document.querySelectorAll("[data-language-set]");
@@ -300,6 +340,22 @@
                 failedTitle: "Generation failed",
                 failedHint: "Try a common English compound name, standardized IUPAC name, or valid SMILES.",
                 noFunctionalGroups: "No common functional group detected",
+                reportKicker: "Issue Report",
+                reportTitle: "Report a Website Problem",
+                reportMoleculeLabel: "Related molecule",
+                reportTypeLabel: "Problem type",
+                reportTypeStructure: "Wrong molecular structure",
+                reportTypeViewer: "3D viewer issue",
+                reportTypeTranslation: "Translation issue",
+                reportTypeLayout: "Layout or mobile display",
+                reportTypeOther: "Other",
+                reportMessageLabel: "What went wrong?",
+                reportContactLabel: "Contact (optional)",
+                reportSubmit: "Submit Report",
+                reportSaved: "Thanks. The report was saved.",
+                reportSaving: "Saving report...",
+                reportError: "Could not save the report. Please try again.",
+                reportMessageRequired: "Please describe the problem first.",
             },
             zh: {
                 pageTitle: "分子視覺化平台",
@@ -359,6 +415,22 @@
                 failedTitle: "生成失敗",
                 failedHint: "請嘗試常見英文名稱、標準 IUPAC 名稱，或有效 SMILES。",
                 noFunctionalGroups: "未偵測到常見官能基",
+                reportKicker: "問題回報",
+                reportTitle: "回報網站問題",
+                reportMoleculeLabel: "相關分子",
+                reportTypeLabel: "問題類型",
+                reportTypeStructure: "分子結構有誤",
+                reportTypeViewer: "3D 模型顯示問題",
+                reportTypeTranslation: "翻譯問題",
+                reportTypeLayout: "版面或手機顯示",
+                reportTypeOther: "其他",
+                reportMessageLabel: "發生什麼問題？",
+                reportContactLabel: "聯絡方式（選填）",
+                reportSubmit: "送出回報",
+                reportSaved: "謝謝，問題回報已記錄。",
+                reportSaving: "正在儲存回報...",
+                reportError: "無法儲存回報，請再試一次。",
+                reportMessageRequired: "請先描述問題。",
             },
         };
 
@@ -471,6 +543,7 @@
             properties.innerHTML = "";
             functionalGroups.innerHTML = "";
             teachingNotes.innerHTML = "";
+            reportMolecule.value = "";
             renderLegend();
             setStatus("");
 
@@ -648,6 +721,7 @@
                 currentMolBlock = data.mol_block;
                 currentMoleculeData = data;
                 currentElements = getPresentElementsFromMolBlock(currentMolBlock);
+                reportMolecule.value = data.display_name;
                 renderProperties(data);
                 renderTextSections(data);
                 renderLegend();
@@ -674,6 +748,51 @@
         form.addEventListener("submit", (event) => {
             event.preventDefault();
             loadMolecule(input.value.trim());
+        });
+
+        function setReportStatus(message, kind = "info") {
+            reportStatus.textContent = message;
+            reportStatus.dataset.kind = kind;
+            reportStatus.hidden = !message;
+        }
+
+        reportForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(reportForm);
+            const message = String(formData.get("message") || "").trim();
+            if (!message) {
+                setReportStatus(t("reportMessageRequired"), "error");
+                return;
+            }
+
+            setReportStatus(t("reportSaving"));
+
+            try {
+                const response = await fetch("/api/report", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        molecule_query: String(formData.get("molecule_query") || "").trim(),
+                        report_type: String(formData.get("report_type") || "other"),
+                        message,
+                        contact: String(formData.get("contact") || "").trim(),
+                        page_url: window.location.href,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error("Report save failed.");
+                }
+
+                reportForm.reset();
+                if (currentMoleculeData) {
+                    reportMolecule.value = currentMoleculeData.display_name;
+                }
+                setReportStatus(t("reportSaved"), "success");
+            } catch (error) {
+                setReportStatus(t("reportError"), "error");
+            }
         });
 
         function setLanguage(lang) {

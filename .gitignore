@@ -9,3 +9,6 @@ node_modules/
 chem_flashcard_output/
 verification_*.png
 Git-*.exe
+reports/*.xlsx
+reports/*.xls
+reports/*.csv
