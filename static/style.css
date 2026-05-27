@@ -846,84 +846,25 @@ dd {
     padding: 24px;
 }
 
-.report-form {
-    display: grid;
-    gap: 14px;
-}
-
-.report-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
-    gap: 12px;
-    align-items: end;
-}
-
-.report-form label {
-    display: grid;
-    gap: 7px;
-    color: var(--data);
-    font-size: 12px;
-    font-weight: 900;
-    text-transform: uppercase;
-}
-
-.report-form input,
-.report-form select,
-.report-form textarea {
-    width: 100%;
-    border: 1px solid #d7e1e5;
-    border-radius: 8px;
-    background: #fffdf8;
-    color: var(--ink);
+.report-copy {
+    max-width: 720px;
+    margin: 0 0 16px;
+    color: var(--muted);
     font-size: 15px;
-    font-weight: 700;
-    outline: 0;
-    padding: 12px;
-    text-transform: none;
+    line-height: 1.5;
 }
 
-.report-form textarea {
-    min-height: 118px;
-    resize: vertical;
-}
-
-.report-form input:focus,
-.report-form select:focus,
-.report-form textarea:focus {
-    border-color: rgba(22, 133, 138, 0.66);
-    box-shadow: 0 0 0 3px rgba(22, 133, 138, 0.12);
-}
-
-.report-form button {
+.report-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 48px;
     border: 1px solid rgba(22, 133, 138, 0.7);
     border-radius: 8px;
     background: linear-gradient(135deg, var(--accent), var(--data));
     color: #ffffff;
-    cursor: pointer;
     font-weight: 900;
     padding: 0 18px;
-}
-
-.report-status {
-    margin: 0;
-    border: 1px solid rgba(22, 133, 138, 0.22);
-    border-radius: 8px;
-    background: rgba(22, 133, 138, 0.08);
-    color: var(--accent-dark);
-    font-weight: 800;
-    padding: 10px 12px;
-}
-
-.report-status[data-kind="error"] {
-    border-color: rgba(180, 35, 24, 0.25);
-    background: #fff1f0;
-    color: var(--danger);
-}
-
-.report-status[data-kind="success"] {
-    border-color: rgba(22, 133, 138, 0.3);
-    background: #e8f7f3;
 }
 
 .site-footer {
@@ -955,8 +896,7 @@ dd {
     }
 
     .dashboard-grid,
-    .properties-grid,
-    .report-grid {
+    .properties-grid {
         grid-template-columns: 1fr;
     }
 

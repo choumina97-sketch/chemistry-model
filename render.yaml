@@ -9,19 +9,3 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
-      - key: REPORT_STORAGE_MODE
-        value: google_form
-      - key: GOOGLE_FORM_ACTION_URL
-        value: https://docs.google.com/forms/d/e/1FAIpQLSfOhogo69jm-AcOhH0PSzCEsVY3SiIRkt9hOh9JK8I5iy278Q/formResponse
-      - key: GOOGLE_FORM_ENTRY_MOLECULE
-        value: entry.777196847
-      - key: GOOGLE_FORM_ENTRY_TYPE
-        value: entry.2089935924
-      - key: GOOGLE_FORM_ENTRY_MESSAGE
-        value: entry.511587003
-      - key: GOOGLE_FORM_ENTRY_CONTACT
-        value: entry.730782396
-      - key: GOOGLE_FORM_ENTRY_PAGE_URL
-        value: entry.2109422454
-      - key: GOOGLE_FORM_ENTRY_USER_AGENT
-        value: entry.437465040
