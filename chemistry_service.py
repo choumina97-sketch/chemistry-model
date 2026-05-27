@@ -93,6 +93,7 @@ def build_molecule_card(name: str) -> dict[str, Any]:
     _optimize_molecule(mol_h)
     functional_groups = detect_functional_groups(mol)
     notes = build_teaching_notes(functional_groups)
+    notes_zh = build_teaching_notes_zh(functional_groups)
 
     return {
         "query": name,
@@ -117,6 +118,7 @@ def build_molecule_card(name: str) -> dict[str, Any]:
         },
         "functional_groups": functional_groups,
         "teaching_notes": notes,
+        "teaching_notes_zh": notes_zh,
     }
 
 
@@ -152,6 +154,28 @@ def build_teaching_notes(functional_groups: list[str]) -> list[str]:
         )
 
     return notes or ["Inspect structure manually for reaction sites."]
+
+
+def build_teaching_notes_zh(functional_groups: list[str]) -> list[str]:
+    notes = []
+    groups = set(functional_groups)
+
+    if "Alcohol" in groups:
+        notes.append("醇類：可形成氫鍵，常用於討論氧化反應與酯化反應。")
+    if "Aromatic ring" in groups:
+        notes.append("芳香環：具有共振穩定性，可用於說明親電子芳香取代反應。")
+    if "Carboxylic acid" in groups:
+        notes.append("羧酸：含有酸性氫，去質子化後的共軛鹼可由共振穩定。")
+    if "Ester" in groups:
+        notes.append("酯類：可用於說明水解反應與親核醯基取代反應。")
+    if "Amide" in groups:
+        notes.append("醯胺：因共振效應降低氮原子的鹼性。")
+    if "Amine" in groups:
+        notes.append("胺類：通常具有鹼性與親核性。")
+    if "Alkyl halide" in groups or "Aryl halide" in groups:
+        notes.append("含鹵素化合物：適合討論極性、脂溶性與取代位置對性質的影響。")
+
+    return notes or ["請手動觀察結構中的可能反應位置。"]
 
 
 def _lookup_pubchem(encoded_name: str) -> MoleculeIdentity | None:

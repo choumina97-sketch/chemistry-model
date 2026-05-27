@@ -596,7 +596,11 @@
                 functionalGroups.innerHTML = `<span class="muted">${t("noFunctionalGroups")}</span>`;
             }
 
-            teachingNotes.innerHTML = data.teaching_notes
+            const localizedNotes = currentLang === "zh" && data.teaching_notes_zh
+                ? data.teaching_notes_zh
+                : data.teaching_notes;
+
+            teachingNotes.innerHTML = localizedNotes
                 .map(note => `<li>${note}</li>`)
                 .join("");
         }
